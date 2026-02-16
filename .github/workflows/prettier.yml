@@ -42,7 +42,9 @@ jobs:
           fi
 
       - name: Commit changes
-        if: steps.verify-changed-files.outputs.changed == 'true'
+        if: |
+          steps.verify-changed-files.outputs.changed == 'true' && 
+          github.event.pull_request.head.repo.full_name == github.repository
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: 'style: apply prettier formatting [skip ci]'
+          commit_message: 'style: apply prettier formatting [skip ci] (プッシュする前に最新の変更をプル/リベースしてください)'
