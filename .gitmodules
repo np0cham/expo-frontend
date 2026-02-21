@@ -1,0 +1,3 @@
+[submodule "amplify/functions/api/prisma"]
+	path = amplify/functions/api/prisma
+	url = https://github.com/np0cham/prisma
