@@ -1,5 +1,5 @@
-import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
-import { api } from '../functions/api/resource';
+import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
+import { api } from "../functions/api/resource";
 
 /*== STEP 1 ===============================================================
 The section below creates a Todo database table with a "content" field. Try
@@ -13,8 +13,8 @@ const schema = a.schema({
       content: a.string(),
     })
     .authorization((allow) => [
-      allow.guest().to(['read']),
-      allow.authenticated().to(['create', 'update', 'delete']),
+      allow.guest().to(["read"]),
+      allow.authenticated().to(["create", "update", "delete"]),
     ]),
 
   DbUserProfile: a.customType({
@@ -62,31 +62,31 @@ const schema = a.schema({
 
   listDbUserProfiles: a
     .query()
-    .returns(a.ref('DbUserProfile').array())
+    .returns(a.ref("DbUserProfile").array())
     .authorization((allow) => [allow.guest(), allow.authenticated()])
     .handler(a.handler.function(api)),
 
   listDbArtists: a
     .query()
-    .returns(a.ref('DbArtist').array())
+    .returns(a.ref("DbArtist").array())
     .authorization((allow) => [allow.guest(), allow.authenticated()])
     .handler(a.handler.function(api)),
 
   listDbLikeArtists: a
     .query()
-    .returns(a.ref('DbLikeArtist').array())
+    .returns(a.ref("DbLikeArtist").array())
     .authorization((allow) => [allow.guest(), allow.authenticated()])
     .handler(a.handler.function(api)),
 
   listDbQuestions: a
     .query()
-    .returns(a.ref('DbQuestion').array())
+    .returns(a.ref("DbQuestion").array())
     .authorization((allow) => [allow.guest(), allow.authenticated()])
     .handler(a.handler.function(api)),
 
   listDbComments: a
     .query()
-    .returns(a.ref('DbComment').array())
+    .returns(a.ref("DbComment").array())
     .authorization((allow) => [allow.guest(), allow.authenticated()])
     .handler(a.handler.function(api)),
 
@@ -98,7 +98,7 @@ const schema = a.schema({
       bio: a.string(),
       instruments: a.string().array().required(),
     })
-    .returns(a.ref('DbUserProfile'))
+    .returns(a.ref("DbUserProfile"))
     .authorization((allow) => [allow.authenticated()])
     .handler(a.handler.function(api)),
 
@@ -110,7 +110,7 @@ const schema = a.schema({
       bio: a.string(),
       instruments: a.string().array(),
     })
-    .returns(a.ref('DbUserProfile'))
+    .returns(a.ref("DbUserProfile"))
     .authorization((allow) => [allow.authenticated()])
     .handler(a.handler.function(api)),
 
@@ -126,7 +126,7 @@ const schema = a.schema({
       name: a.string().required(),
       description: a.string(),
     })
-    .returns(a.ref('DbArtist'))
+    .returns(a.ref("DbArtist"))
     .authorization((allow) => [allow.authenticated()])
     .handler(a.handler.function(api)),
 
@@ -137,7 +137,7 @@ const schema = a.schema({
       name: a.string(),
       description: a.string(),
     })
-    .returns(a.ref('DbArtist'))
+    .returns(a.ref("DbArtist"))
     .authorization((allow) => [allow.authenticated()])
     .handler(a.handler.function(api)),
 
@@ -155,7 +155,7 @@ const schema = a.schema({
     .arguments({
       artistId: a.id().required(),
     })
-    .returns(a.ref('DbLikeArtist'))
+    .returns(a.ref("DbLikeArtist"))
     .authorization((allow) => [allow.authenticated()])
     .handler(a.handler.function(api)),
 
@@ -177,7 +177,7 @@ const schema = a.schema({
       showUsername: a.boolean(),
       category: a.string(),
     })
-    .returns(a.ref('DbQuestion'))
+    .returns(a.ref("DbQuestion"))
     .authorization((allow) => [allow.authenticated()])
     .handler(a.handler.function(api)),
 
@@ -191,7 +191,7 @@ const schema = a.schema({
       showUsername: a.boolean(),
       category: a.string(),
     })
-    .returns(a.ref('DbQuestion'))
+    .returns(a.ref("DbQuestion"))
     .authorization((allow) => [allow.authenticated()])
     .handler(a.handler.function(api)),
 
@@ -212,7 +212,7 @@ const schema = a.schema({
       attachments: a.string().array().required(),
       showUsername: a.boolean(),
     })
-    .returns(a.ref('DbComment'))
+    .returns(a.ref("DbComment"))
     .authorization((allow) => [allow.authenticated()])
     .handler(a.handler.function(api)),
 
@@ -224,7 +224,7 @@ const schema = a.schema({
       attachments: a.string().array(),
       showUsername: a.boolean(),
     })
-    .returns(a.ref('DbComment'))
+    .returns(a.ref("DbComment"))
     .authorization((allow) => [allow.authenticated()])
     .handler(a.handler.function(api)),
 
@@ -243,7 +243,7 @@ export type Schema = ClientSchema<typeof schema>;
 export const data = defineData({
   schema,
   authorizationModes: {
-    defaultAuthorizationMode: 'identityPool',
+    defaultAuthorizationMode: "identityPool",
   },
 });
 

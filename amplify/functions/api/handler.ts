@@ -1,9 +1,9 @@
 import {
   GetSecretValueCommand,
   SecretsManagerClient,
-} from '@aws-sdk/client-secrets-manager';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from './prisma/generated/prisma/client';
+} from "@aws-sdk/client-secrets-manager";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "./prisma/generated/prisma/client";
 
 type ResolverEvent = {
   fieldName?: string;
@@ -19,7 +19,7 @@ type ResolverEvent = {
 };
 
 const secretsManager = new SecretsManagerClient({
-  region: process.env.DB_REGION ?? 'ap-northeast-1',
+  region: process.env.DB_REGION ?? "ap-northeast-1",
 });
 
 const getDatabaseUrl = async () => {
@@ -28,7 +28,7 @@ const getDatabaseUrl = async () => {
   );
 
   if (!secret.SecretString) {
-    throw new Error('SecretString is empty');
+    throw new Error("SecretString is empty");
   }
 
   const { username, password, host, port, dbname } = JSON.parse(
@@ -50,7 +50,7 @@ const getCurrentUserId = (event: ResolverEvent): string => {
     event.identity?.claims?.sub ?? event.identity?.sub ?? undefined;
 
   if (!userId) {
-    throw new Error('Unauthorized: Cognito user id is missing');
+    throw new Error("Unauthorized: Cognito user id is missing");
   }
 
   return userId;
@@ -93,7 +93,7 @@ const listDbUserProfiles = async () => {
 
   try {
     return await prisma.userProfile.findMany({
-      orderBy: { name: 'asc' },
+      orderBy: { name: "asc" },
       take: 100,
       select: {
         id: true,
@@ -113,7 +113,7 @@ const listDbArtists = async () => {
 
   try {
     return await prisma.artist.findMany({
-      orderBy: { name: 'asc' },
+      orderBy: { name: "asc" },
       take: 50,
       select: {
         id: true,
@@ -148,7 +148,7 @@ const listDbQuestions = async () => {
 
   try {
     const questions = await prisma.question.findMany({
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       take: 50,
       select: {
         id: true,
@@ -174,7 +174,7 @@ const listDbComments = async () => {
 
   try {
     const comments = await prisma.comment.findMany({
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       take: 100,
       select: {
         id: true,
@@ -242,7 +242,7 @@ const updateDbUserProfile = async (
     });
 
     if (!existing) {
-      throw new Error('UserProfile not found');
+      throw new Error("UserProfile not found");
     }
 
     return await prisma.userProfile.update({
@@ -390,7 +390,7 @@ const createDbQuestion = async (
         content: args.content,
         attachments: args.attachments,
         showUsername: args.showUsername ?? true,
-        category: args.category ?? 'QUESTION',
+        category: args.category ?? "QUESTION",
       },
       select: {
         id: true,
@@ -424,7 +424,7 @@ const updateDbQuestion = async (
     });
 
     if (!existing) {
-      throw new Error('Question not found or unauthorized');
+      throw new Error("Question not found or unauthorized");
     }
 
     const question = await prisma.question.update({
@@ -522,7 +522,7 @@ const updateDbComment = async (
     });
 
     if (!existing) {
-      throw new Error('Comment not found or unauthorized');
+      throw new Error("Comment not found or unauthorized");
     }
 
     const comment = await prisma.comment.update({
@@ -572,90 +572,90 @@ const deleteDbComment = async (
 };
 
 const isListField = (fieldName?: string) =>
-  fieldName === 'listDbUserProfiles' ||
-  fieldName === 'listDbArtists' ||
-  fieldName === 'listDbLikeArtists' ||
-  fieldName === 'listDbQuestions' ||
-  fieldName === 'listDbComments';
+  fieldName === "listDbUserProfiles" ||
+  fieldName === "listDbArtists" ||
+  fieldName === "listDbLikeArtists" ||
+  fieldName === "listDbQuestions" ||
+  fieldName === "listDbComments";
 
 export const handler = async (event: ResolverEvent) => {
   try {
-    if (event?.fieldName === 'listDbUserProfiles') {
+    if (event?.fieldName === "listDbUserProfiles") {
       return await listDbUserProfiles();
     }
 
-    if (event?.fieldName === 'listDbArtists') {
+    if (event?.fieldName === "listDbArtists") {
       return await listDbArtists();
     }
 
-    if (event?.fieldName === 'listDbLikeArtists') {
+    if (event?.fieldName === "listDbLikeArtists") {
       return await listDbLikeArtists();
     }
 
-    if (event?.fieldName === 'listDbQuestions') {
+    if (event?.fieldName === "listDbQuestions") {
       return await listDbQuestions();
     }
 
-    if (event?.fieldName === 'listDbComments') {
+    if (event?.fieldName === "listDbComments") {
       return await listDbComments();
     }
 
     const currentUserId = getCurrentUserId(event);
     const args = event.arguments ?? {};
 
-    if (event?.fieldName === 'createDbUserProfile') {
+    if (event?.fieldName === "createDbUserProfile") {
       return await createDbUserProfile(currentUserId, args);
     }
 
-    if (event?.fieldName === 'updateDbUserProfile') {
+    if (event?.fieldName === "updateDbUserProfile") {
       return await updateDbUserProfile(currentUserId, args);
     }
 
-    if (event?.fieldName === 'deleteDbUserProfile') {
+    if (event?.fieldName === "deleteDbUserProfile") {
       return await deleteDbUserProfile(currentUserId);
     }
 
-    if (event?.fieldName === 'createDbArtist') {
+    if (event?.fieldName === "createDbArtist") {
       return await createDbArtist(args);
     }
 
-    if (event?.fieldName === 'updateDbArtist') {
+    if (event?.fieldName === "updateDbArtist") {
       return await updateDbArtist(args);
     }
 
-    if (event?.fieldName === 'deleteDbArtist') {
+    if (event?.fieldName === "deleteDbArtist") {
       return await deleteDbArtist(args);
     }
 
-    if (event?.fieldName === 'createDbLikeArtist') {
+    if (event?.fieldName === "createDbLikeArtist") {
       return await createDbLikeArtist(currentUserId, args);
     }
 
-    if (event?.fieldName === 'deleteDbLikeArtist') {
+    if (event?.fieldName === "deleteDbLikeArtist") {
       return await deleteDbLikeArtist(currentUserId, args);
     }
 
-    if (event?.fieldName === 'createDbQuestion') {
+    if (event?.fieldName === "createDbQuestion") {
       return await createDbQuestion(currentUserId, args);
     }
 
-    if (event?.fieldName === 'updateDbQuestion') {
+    if (event?.fieldName === "updateDbQuestion") {
       return await updateDbQuestion(currentUserId, args);
     }
 
-    if (event?.fieldName === 'deleteDbQuestion') {
+    if (event?.fieldName === "deleteDbQuestion") {
       return await deleteDbQuestion(currentUserId, args);
     }
 
-    if (event?.fieldName === 'createDbComment') {
+    if (event?.fieldName === "createDbComment") {
       return await createDbComment(currentUserId, args);
     }
 
-    if (event?.fieldName === 'updateDbComment') {
+    if (event?.fieldName === "updateDbComment") {
       return await updateDbComment(currentUserId, args);
     }
 
-    if (event?.fieldName === 'deleteDbComment') {
+    if (event?.fieldName === "deleteDbComment") {
       return await deleteDbComment(currentUserId, args);
     }
 
@@ -665,14 +665,14 @@ export const handler = async (event: ResolverEvent) => {
 
     return {
       statusCode: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        message: 'DB connection succeeded',
+        message: "DB connection succeeded",
         data: result,
       }),
     };
   } catch (e) {
-    console.error('Error:', e);
+    console.error("Error:", e);
 
     if (isListField(event?.fieldName)) {
       throw e;
