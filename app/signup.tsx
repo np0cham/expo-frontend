@@ -1,18 +1,18 @@
-import { signUp } from 'aws-amplify/auth';
-import { router } from 'expo-router';
-import { useState } from 'react';
-import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
+import { signUp } from "aws-amplify/auth";
+import { router } from "expo-router";
+import { useState } from "react";
+import { Button, StyleSheet, Text, TextInput, View } from "react-native";
 
 export default function SignUpScreen() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
 
   const handleSignUp = async () => {
     try {
-      setError('');
-      setMessage('');
+      setError("");
+      setMessage("");
 
       const response = await signUp({
         username: email,
@@ -24,17 +24,17 @@ export default function SignUpScreen() {
         },
       });
 
-      if (response.nextStep.signUpStep === 'CONFIRM_SIGN_UP') {
+      if (response.nextStep.signUpStep === "CONFIRM_SIGN_UP") {
         router.push({
-          pathname: '/confirm-signup',
+          pathname: "/confirm-signup",
           params: { email },
         });
         return;
       }
 
-      setMessage('登録が完了しました。ログインしてください');
+      setMessage("登録が完了しました。ログインしてください");
     } catch (e: any) {
-      setError(e.message ?? 'サインアップに失敗しました');
+      setError(e.message ?? "サインアップに失敗しました");
     }
   };
 
@@ -61,26 +61,26 @@ export default function SignUpScreen() {
 
       <Button title="登録する" onPress={handleSignUp} />
       <View style={styles.spacer} />
-      <Button title="ログインに戻る" onPress={() => router.replace('/login')} />
+      <Button title="ログインに戻る" onPress={() => router.replace("/login")} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 24 },
+  container: { flex: 1, justifyContent: "center", padding: 24 },
   title: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 16,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,
   },
-  message: { color: 'green', marginBottom: 12 },
-  error: { color: 'red', marginBottom: 12 },
+  message: { color: "green", marginBottom: 12 },
+  error: { color: "red", marginBottom: 12 },
   spacer: { height: 12 },
 });
