@@ -1,14 +1,15 @@
+import { signOut } from "aws-amplify/auth";
 import { generateClient } from "aws-amplify/data";
 import { Image } from "expo-image";
+import { Link, router } from "expo-router";
 import { useEffect, useState } from "react";
-import { Platform, StyleSheet } from "react-native";
+import { Button, Platform, StyleSheet } from "react-native";
 
 import type { Schema } from "@/amplify/data/resource";
 import { HelloWave } from "@/components/hello-wave";
 import ParallaxScrollView from "@/components/parallax-scroll-view";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { Link } from "expo-router";
 
 const client = generateClient<Schema>();
 
@@ -134,6 +135,16 @@ export default function HomeScreen() {
             </ThemedView>
           ))
         )}
+      </ThemedView>
+
+      <ThemedView style={styles.stepContainer}>
+        <Button
+          title="サインアウト"
+          onPress={async () => {
+            await signOut();
+            router.replace("/login");
+          }}
+        />
       </ThemedView>
     </ParallaxScrollView>
   );
