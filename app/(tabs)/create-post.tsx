@@ -69,7 +69,7 @@ export default function CreatePostScreen() {
             {
               text: "プロフィールを設定",
               onPress: () => {
-                router.navigate("setup-profile" as never);
+                router.push("/(tabs)/setup-profile");
               },
             },
           ]

@@ -135,8 +135,8 @@ export default function ProfileScreen() {
 
   const handleEditProfile = () => {
     if (userProfile) {
-      router.navigate({
-        pathname: "setup-profile",
+      router.push({
+        pathname: "/(tabs)/setup-profile",
         params: {
           name: userProfile.name,
           age: String(userProfile.age),
