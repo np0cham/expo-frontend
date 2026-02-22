@@ -5,4 +5,5 @@ export const api = defineFunction({
     SECRET_NAME: "migration-db-credentials-v2",
     DB_REGION: "ap-northeast-1",
   },
+  timeoutSeconds: 10,
 });

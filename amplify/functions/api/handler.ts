@@ -35,14 +35,42 @@ const getDatabaseUrl = async () => {
     secret.SecretString,
   );
 
-  return `postgresql://${username}:${encodeURIComponent(password)}@${host}:${port ?? 5432}/${dbname}`;
+  console.log("Database connection info:", {
+    username,
+    host,
+    port: port ?? 5432,
+    dbname,
+  });
+
+  // Use sslmode=no-verify to accept self-signed certificates
+  const connectionString = `postgresql://${username}:${encodeURIComponent(password)}@${host}:${port ?? 5432}/${dbname}?sslmode=no-verify`;
+  console.log("Connection string:", connectionString.replace(password, "***"));
+  
+  return connectionString;
 };
 
 const createPrismaClient = async () => {
   const databaseUrl = await getDatabaseUrl();
-  const adapter = new PrismaPg({ connectionString: databaseUrl });
+  console.log("Creating new Prisma client with SSL options");
+  
+  const adapter = new PrismaPg({ 
+    connectionString: databaseUrl,
+  });
 
-  return new PrismaClient({ adapter });
+  const client = new PrismaClient({
+    adapter,
+    log: ['query', 'error', 'warn'],
+  });
+
+  return client;
+};
+
+const disconnectPrisma = async (prisma: PrismaClient) => {
+  try {
+    await prisma.$disconnect();
+  } catch (error) {
+    console.error("Error disconnecting Prisma:", error);
+  }
 };
 
 const getCurrentUserId = (event: ResolverEvent): string => {
@@ -82,10 +110,12 @@ const toCommentOutput = (comment: {
   updatedAt: Date;
   attachments: string[];
   showUsername: boolean;
+  parentCommentId?: string | null;
 }) => ({
   ...comment,
   createdAt: comment.createdAt.toISOString(),
   updatedAt: comment.updatedAt.toISOString(),
+  parentCommentId: comment.parentCommentId ?? undefined,
 });
 
 const listDbUserProfiles = async () => {
@@ -104,7 +134,7 @@ const listDbUserProfiles = async () => {
       },
     });
   } finally {
-    await prisma.$disconnect();
+      await disconnectPrisma(prisma);
   }
 };
 
@@ -122,7 +152,7 @@ const listDbArtists = async () => {
       },
     });
   } finally {
-    await prisma.$disconnect();
+      await disconnectPrisma(prisma);
   }
 };
 
@@ -139,7 +169,7 @@ const listDbLikeArtists = async () => {
       },
     });
   } finally {
-    await prisma.$disconnect();
+      await disconnectPrisma(prisma);
   }
 };
 
@@ -165,7 +195,7 @@ const listDbQuestions = async () => {
 
     return questions.map(toQuestionOutput);
   } finally {
-    await prisma.$disconnect();
+      await disconnectPrisma(prisma);
   }
 };
 
@@ -185,12 +215,13 @@ const listDbComments = async () => {
         updatedAt: true,
         attachments: true,
         showUsername: true,
+        parentCommentId: true,
       },
     });
 
     return comments.map(toCommentOutput);
   } finally {
-    await prisma.$disconnect();
+      await disconnectPrisma(prisma);
   }
 };
 
@@ -225,7 +256,7 @@ const createDbUserProfile = async (
       },
     });
   } finally {
-    await prisma.$disconnect();
+      await disconnectPrisma(prisma);
   }
 };
 
@@ -264,7 +295,7 @@ const updateDbUserProfile = async (
       },
     });
   } finally {
-    await prisma.$disconnect();
+      await disconnectPrisma(prisma);
   }
 };
 
@@ -278,7 +309,7 @@ const deleteDbUserProfile = async (currentUserId: string) => {
 
     return result.count > 0;
   } finally {
-    await prisma.$disconnect();
+      await disconnectPrisma(prisma);
   }
 };
 
@@ -298,7 +329,7 @@ const createDbArtist = async (args: Record<string, any>) => {
       },
     });
   } finally {
-    await prisma.$disconnect();
+      await disconnectPrisma(prisma);
   }
 };
 
@@ -321,7 +352,7 @@ const updateDbArtist = async (args: Record<string, any>) => {
       },
     });
   } finally {
-    await prisma.$disconnect();
+      await disconnectPrisma(prisma);
   }
 };
 
@@ -332,7 +363,7 @@ const deleteDbArtist = async (args: Record<string, any>) => {
     const result = await prisma.artist.deleteMany({ where: { id: args.id } });
     return result.count > 0;
   } finally {
-    await prisma.$disconnect();
+     await disconnectPrisma(prisma);
   }
 };
 
@@ -355,7 +386,7 @@ const createDbLikeArtist = async (
       },
     });
   } finally {
-    await prisma.$disconnect();
+      await disconnectPrisma(prisma);
   }
 };
 
@@ -372,7 +403,7 @@ const deleteDbLikeArtist = async (
 
     return result.count > 0;
   } finally {
-    await prisma.$disconnect();
+      await disconnectPrisma(prisma);
   }
 };
 
@@ -380,15 +411,22 @@ const createDbQuestion = async (
   currentUserId: string,
   args: Record<string, any>,
 ) => {
+  console.log("[createDbQuestion] Called with:", {
+    userId: currentUserId,
+    title: args.title,
+    category: args.category,
+  });
+
   const prisma = await createPrismaClient();
 
   try {
+    console.log("[createDbQuestion] Creating question in database...");
     const question = await prisma.question.create({
       data: {
         userId: currentUserId,
         title: args.title,
         content: args.content,
-        attachments: args.attachments,
+        attachments: args.attachments || [],
         showUsername: args.showUsername ?? true,
         category: args.category ?? "QUESTION",
       },
@@ -405,9 +443,27 @@ const createDbQuestion = async (
       },
     });
 
-    return toQuestionOutput(question);
+    console.log("[createDbQuestion] Question created raw response:", {
+      id: question.id,
+      title: question.title,
+      userId: question.userId,
+      createdAt: question.createdAt,
+      updatedAt: question.updatedAt,
+    });
+
+    const output = toQuestionOutput(question);
+    console.log("[createDbQuestion] Converted output:", JSON.stringify(output));
+
+    return output;
+  } catch (error) {
+    console.error("[createDbQuestion] Error creating question:", error);
+    if (error instanceof Error) {
+      console.error("[createDbQuestion] Error message:", error.message);
+      console.error("[createDbQuestion] Error stack:", error.stack);
+    }
+    throw error;
   } finally {
-    await prisma.$disconnect();
+      await disconnectPrisma(prisma);
   }
 };
 
@@ -455,7 +511,7 @@ const updateDbQuestion = async (
 
     return toQuestionOutput(question);
   } finally {
-    await prisma.$disconnect();
+      await disconnectPrisma(prisma);
   }
 };
 
@@ -472,7 +528,7 @@ const deleteDbQuestion = async (
 
     return result.count > 0;
   } finally {
-    await prisma.$disconnect();
+      await disconnectPrisma(prisma);
   }
 };
 
@@ -488,8 +544,9 @@ const createDbComment = async (
         questionId: args.questionId,
         userId: currentUserId,
         content: args.content,
-        attachments: args.attachments,
+        attachments: args.attachments || [],
         showUsername: args.showUsername ?? true,
+        parentCommentId: args.parentCommentId ?? null,
       },
       select: {
         id: true,
@@ -500,12 +557,13 @@ const createDbComment = async (
         updatedAt: true,
         attachments: true,
         showUsername: true,
+        parentCommentId: true,
       },
     });
 
     return toCommentOutput(comment);
   } finally {
-    await prisma.$disconnect();
+      await disconnectPrisma(prisma);
   }
 };
 
@@ -550,7 +608,7 @@ const updateDbComment = async (
 
     return toCommentOutput(comment);
   } finally {
-    await prisma.$disconnect();
+      await disconnectPrisma(prisma);
   }
 };
 
@@ -567,7 +625,7 @@ const deleteDbComment = async (
 
     return result.count > 0;
   } finally {
-    await prisma.$disconnect();
+      await disconnectPrisma(prisma);
   }
 };
 
@@ -580,6 +638,10 @@ const isListField = (fieldName?: string) =>
 
 export const handler = async (event: ResolverEvent) => {
   try {
+    console.log("[handler] Incoming event fieldName:", event?.fieldName);
+    console.log("[handler] Event arguments:", JSON.stringify(event.arguments ?? {}));
+    console.log("[handler] User ID:", event?.identity?.claims?.sub || event?.identity?.sub);
+
     if (event?.fieldName === "listDbUserProfiles") {
       return await listDbUserProfiles();
     }
@@ -636,7 +698,10 @@ export const handler = async (event: ResolverEvent) => {
     }
 
     if (event?.fieldName === "createDbQuestion") {
-      return await createDbQuestion(currentUserId, args);
+      console.log("[handler] Routing to createDbQuestion");
+      const result = await createDbQuestion(currentUserId, args);
+      console.log("[handler] createDbQuestion result:", JSON.stringify(result));
+      return result;
     }
 
     if (event?.fieldName === "updateDbQuestion") {
@@ -661,7 +726,7 @@ export const handler = async (event: ResolverEvent) => {
 
     const prisma = await createPrismaClient();
     const result = await prisma.$queryRaw`SELECT NOW() as current_time`;
-    await prisma.$disconnect();
+    await disconnectPrisma(prisma);
 
     return {
       statusCode: 200,
@@ -672,7 +737,12 @@ export const handler = async (event: ResolverEvent) => {
       }),
     };
   } catch (e) {
-    console.error("Error:", e);
+    console.error("[handler] Error caught in catch block:", e);
+    if (e instanceof Error) {
+      console.error("[handler] Error message:", e.message);
+      console.error("[handler] Error stack:", e.stack);
+    }
+    console.error("[handler] Event field name:", event?.fieldName);
 
     if (isListField(event?.fieldName)) {
       throw e;

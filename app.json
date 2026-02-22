@@ -40,6 +40,14 @@
             "backgroundColor": "#000000"
           }
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "質問に添付する画像・動画を選択するため、写真ライブラリへのアクセスを許可してください。",
+          "cameraPermission": "質問に添付する写真・動画を撮影するため、カメラへのアクセスを許可してください。",
+          "microphonePermission": "動画を撮影するため、マイクへのアクセスを許可してください。"
+        }
       ]
     ],
     "experiments": {

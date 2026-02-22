@@ -58,6 +58,7 @@ const schema = a.schema({
     updatedAt: a.datetime().required(),
     attachments: a.string().array().required(),
     showUsername: a.boolean().required(),
+    parentCommentId: a.id(),
   }),
 
   listDbUserProfiles: a
@@ -81,13 +82,13 @@ const schema = a.schema({
   listDbQuestions: a
     .query()
     .returns(a.ref("DbQuestion").array())
-    .authorization((allow) => [allow.guest(), allow.authenticated()])
+    .authorization((allow) => [allow.authenticated()])
     .handler(a.handler.function(api)),
 
   listDbComments: a
     .query()
     .returns(a.ref("DbComment").array())
-    .authorization((allow) => [allow.guest(), allow.authenticated()])
+    .authorization((allow) => [allow.authenticated()])
     .handler(a.handler.function(api)),
 
   createDbUserProfile: a
@@ -211,6 +212,7 @@ const schema = a.schema({
       content: a.string().required(),
       attachments: a.string().array().required(),
       showUsername: a.boolean(),
+      parentCommentId: a.id(),
     })
     .returns(a.ref("DbComment"))
     .authorization((allow) => [allow.authenticated()])
@@ -243,7 +245,7 @@ export type Schema = ClientSchema<typeof schema>;
 export const data = defineData({
   schema,
   authorizationModes: {
-    defaultAuthorizationMode: "identityPool",
+    defaultAuthorizationMode: "userPool",
   },
 });
 
